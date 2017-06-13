@@ -1,0 +1,31 @@
+.card{
+	width: 100%; //fallback
+	width: 100vw;
+	padding: 10px;
+	margin: 0;
+}
+.card:hover{
+	cursor: pointer;
+}
+
+.card.high {
+	background-color: rgba(235, 2, 2, 0.79);
+}
+
+.card.medium {
+	background-color: rgba(230, 235, 2, 0.79);
+}
+
+.card.low {
+	background-color: rgba(2, 235, 95, 0.79);
+}
+
+.menu {
+	display: none;
+}
+
+#wrapper{
+	padding-left: 0px;
+	padding-right: 0px;
+
+}

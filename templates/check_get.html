@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- javascript -->
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+	<!-- css -->
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style.css')}}" />
+</head>
+<body>
+	<form id="add_task" action="" method="post">
+		<input name="title" id="title" placeholder="Title"/>
+		<select name="priority">
+			<option value="high">high</option>
+			<option value="medium">medium</option>
+			<option value="low">low</option>
+		</select>
+		<button id="add_task_submit">Submit</button>
+
+	</form>
+	<div class="container-fluid" id="wrapper">
+		<button id="check_get_button">Check Get</button>
+
+	</div>
+	<script>
+		var debug = true;
+
+		function logit(data){
+			if(debug){
+				console.log(data);
+			}
+		}
+
+		$( document ).ready(function() {
+			logit( "DEBUG = "+debug);
+		});
+
+
+	// POPULATE FROM API
+
+		function get_posts_ajax(){
+			logit('GET POSTS AJAX')
+			$.ajax({
+				url:"{{url_for('api_tasks_view', user_id='stuff')}}",
+				success: function(data){
+
+					$("#wrapper").html('');
+					{% raw %}
+					var template = [
+						'<div id="card_{{ id }}"class="card {{priority}}">',
+							'<h3>{{ name }}</h3>',
+							'<p>{{ priority }}</p>',
+							'<div id="menu_{{id}}" class="menu">',
+								'<button class="edit">Edit</button>',
+								'<button class="delete">Delete</button>',
+							'</div>',
+						'</div>'
+					].join("\n")
+					{% endraw %}
+					$.each(data, function (key, item) {
+						var html = Mustache.render(template, item);
+						$("#wrapper").append(html);
+					});
+					logit('SUCCESS GET POSTS AJAX')
+
+				}
+			});
+		}
+		$('#check_get_button').click(function(){
+			get_posts_ajax();
+			$('#check_get_button').css('display','none');
+
+		});
+
+		//CLICK CARD STUFF
+		$('#wrapper').on('click',function(event){
+			event.stopPropagation();
+			logit("Clicked on "+event.target.id);
+			if($(event.target).hasClass('delete')){
+				logit(event.target.parentNode.id);
+				var id = event.target.parentNode.id.split("_")[1];
+				logit('CARD ID TO DELETE : '+id);
+				$.ajax({
+					type: "delete",
+					url: "{{ url_for('api_tasks_delete', user_id='yolo')}}",
+					contentType: 'application/json;charset=UTF-8',
+					data: '{"id":"'+id+'"}',
+					success: function(){
+						get_posts_ajax();
+					}
+				});
+				return;
+			}
+			if($(event.target).hasClass('edit')){
+				logit('EDIT');
+
+				return;
+			}
+			var card_id = ''
+			if(event.target.id != ''){
+				card_id = event.target.id;
+			}else{
+				card_id = event.target.parentNode.id;
+			}
+			if ($('#'+card_id+' .menu').css('display') == 'none'){
+				$('#'+card_id+' .menu').css('display','block');
+			}else{
+				$('#'+card_id+' .menu').css('display','none');
+			}
+		});
+
+		$('#add_task_submit').on('click', function(event){
+			event.preventDefault();
+			var frm = $('#add_task');
+			logit('SUBMITTING');
+			logit(JSON.stringify(frm.serializeArray()));
+			$.ajax({
+				type: "post",
+				url: "{{url_for('api_tasks_add', user_id='yolo')}}",
+				data: JSON.stringify(frm.serializeArray(), null, '\t'),
+				contentType: 'application/json;charset=UTF-8',
+				success: function(data){
+					get_posts_ajax();
+					logit(data);
+				}
+			});
+		});
+
+		$('.delete').on('click', function(event){
+			event.preventDefault();
+			logit('DELETING CARD '+  event.target.parentNode.id);
+		});
+	</script>
+</body>
+</html>
