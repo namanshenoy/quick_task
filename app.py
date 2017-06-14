@@ -1,15 +1,14 @@
 from flask import Flask, render_template, jsonify,request
 import json
+from bson.json_util import dumps as bson_dumps
+from flask_pymongo import PyMongo
 app = Flask(__name__)
 app.config['DEBUG'] = True
+app.config['MONGO_DBNAME'] = 'restdb'
+app.config['MONGO_URI'] = 'mongodb://admin:Naman123@ds141108.mlab.com:41108/tasks'
 
-list = [
-	{'priority': 'high', 'name': 'Name 1', 'id':1},
-	{'priority': 'medium', 'name': 'Name 2', 'id':2},
-	{'priority': 'low', 'name': 'Name 3', 'id':3}
-]
+mongo = PyMongo(app)
 
-current_id = 3
 
 @app.route('/')
 def index():
@@ -17,8 +16,11 @@ def index():
 
 @app.route('/api/v1/<user_id>/tasks/view')
 def api_tasks_view(user_id):
-	temp_list = list[:]
+	#temp_list = list[:]
 	return_list = []
+	tasks = mongo.db.tasks
+
+	temp_list = json.loads(bson_dumps(tasks.find({'user':user_id})))
 	for task in temp_list:
 		if task['priority'] == 'high':
 			return_list.append(task)
@@ -43,25 +45,23 @@ def api_tasks_view(user_id):
 def api_tasks_add(user_id):
 	print(request.json)
 	request_json = request.json
-	global current_id
-	current_id +=1
-	add_item = {'priority': request_json[1]['value'], 'name':request_json[0]['value'], 'id':current_id}
-	list.append(add_item)
-	print('Success')
-	print list
+	tasks = mongo.db.tasks
+
+	current_id = tasks.find_and_modify({"CURRENT_ID": {"$exists": True}},{"$inc": {"CURRENT_ID": 1}}, True)
+	task = {'user':user_id, 'priority': request_json[1]['value'], 'name':request_json[0]['value'], 'id':current_id['CURRENT_ID']}
+	task_id = tasks.insert_one(task).inserted_id
+	print ('added task: ' +str(task_id))
+	print('Add Success')
 	return json.dumps({'success':'True'}), 200, {'ContentType':'application/json'}
 
 @app.route('/api/v1/<user_id>/tasks/delete', methods=['GET', 'DELETE'])
 def api_tasks_delete(user_id):
 	request_str = request.data.replace('\\','')
 	request_json = json.loads(request_str)
-	for task in list:
-		print (task,request_json)
-		print(task['id'])
-		if str(task['id']) == str(request_json['id']):
-			list.remove(task)
+	tasks = mongo.db.tasks
+	print('DELETING')
+	tasks.remove({'id': int(request_json['id'])})
 	print('Success: '+ request_json['id'])
-	print list
 	return json.dumps({'success':'True'}), 200, {'ContentType':'application/json'}
 
 if __name__ == "__main__":
