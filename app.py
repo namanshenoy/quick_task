@@ -16,7 +16,6 @@ def index():
 
 @app.route('/api/v1/<user_id>/tasks/view')
 def api_tasks_view(user_id):
-	#temp_list = list[:]
 	return_list = []
 	tasks = mongo.db.tasks
 
