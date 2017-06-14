@@ -12,7 +12,7 @@ mongo = PyMongo(app)
 
 @app.route('/')
 def index():
-	return render_template('check_get.html')
+	return render_template('index.html')
 
 @app.route('/api/v1/<user_id>/tasks/view')
 def api_tasks_view(user_id):

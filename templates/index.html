@@ -12,22 +12,40 @@
 	<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style.css')}}" />
 </head>
 <body>
-	<form id="add_task" action="" method="post">
-		<input name="title" id="title" placeholder="Title"/>
-		<select name="priority">
-			<option value="high">high</option>
-			<option value="medium">medium</option>
-			<option value="low">low</option>
-		</select>
-		<button id="add_task_submit">Submit</button>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-7">
+				<h3 style="display:inline;text-align:left;">Task.</h3>
+			</div>
+			<form id="add_task" style="padding:2.5px;" class="form-inline col-md-5" action="" method="post">
+				<div class="form-group">
+					<input name="title" id="title" class="form-control" placeholder="Title"/>
+				</div>
+				<div class="form-group">
+					<select class="form-control" name="priority">
+						<option value="high">high</option>
+						<option value="medium">medium</option>
+						<option value="low">low</option>
+					</select>
+				</div>
+					<button class="btn btn-success" class="form-control" id="add_task_submit">Submit</button>
+				</div>
+			</form>
+		</div>
+	</div>
 
-	</form>
+
 	<div class="container-fluid" id="wrapper">
 		<button id="check_get_button">Check Get</button>
 
 	</div>
 	<script>
 		var debug = true;
+
+		$(document).ready(function(){
+			get_posts_ajax();
+
+		});
 
 		function logit(data){
 			if(debug){
@@ -70,11 +88,7 @@
 				}
 			});
 		}
-		$('#check_get_button').click(function(){
-			get_posts_ajax();
-			$('#check_get_button').css('display','none');
 
-		});
 
 		//CLICK CARD STUFF
 		$('#wrapper').on('click',function(event){
